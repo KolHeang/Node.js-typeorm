@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "target": "ES6",
+        "lib": ["es5", "es6"],
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "module": "commonjs",
+        "moduleResolution": "node",
+        // "allowJs": true,
+        "sourceMap": true,
+        "outDir": "./dist",
+        "esModuleInterop": true,
+        // "forceConsistentCasingInFileNames": true,
+        // "strict": true,
+        // "noImplicitAny": true,
+        "skipLibCheck": true,
+        "strictPropertyInitialization": false
+    },
+    "include": ["src/**/*", "src/*"],
+    "exclude": ["dist", "node_modules"]
+}
