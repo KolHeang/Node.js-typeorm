@@ -1,16 +1,25 @@
 import { Request,Response } from "express";
 import { AppDataSource } from "./config/database";
 import express from "express";
+import { authentification } from "./middleware/auth.middleware";
+import userRoutes from "./routes/user.routes";
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-console.log("password", process.env.DB_PASSWORD);
+
 app.get("/", (req: Request, res: Response) => {
     res.send("Hello World!");
 });
+
+
+app.use("/api/users", userRoutes);
+
+// Authentification middleware
+app.use(authentification);
+
 
 AppDataSource.initialize()
 .then(() => {
