@@ -1,68 +1,86 @@
-import UserService from "../services/user.services";
-import { Request, Response } from "express";
-
+import { Request, Response } from 'express';
+import { UserDto } from '../dto/user.dto';
+import { ValidatorDTO } from '../decorators/ValidatorDTO';
+import { userService } from '../services/user.services';
 class UserController {
-  static async registerUser(req: Request, res: Response): Promise<any> {
-    try {
-      const { username, password, email, role } = req.body;
-      const checkUser = await UserService.getUserByEmail(email);
-      if (checkUser) {
-        return res.status(400).json({ message: "User already exists" });
-      }
-      const user = await UserService.createUser(username, email, password, role);
-      const { password: _, ...userWithoutPassword } = user;
-      return res.status(201).json(userWithoutPassword);
-    } catch (error) {
-      return res.status(500).json({ message: error });
+    @ValidatorDTO(UserDto)
+    public async createUser(req: Request, res: Response) {
+        try {
+            const userDto: UserDto = req.body; 
+            const newUser = await userService.createUser(userDto);
+            return res.status(201).json({
+                status: true,
+                message: "User created successfully",
+                data: newUser,
+            });
+        } catch (error) {
+            return res.status(500).json({
+                status: false,
+                message: "Internal server error",
+                error: error.message,
+            });
+        }
     }
-  }
-  static async getUsers(req: Request, res: Response): Promise<any> {
-    try {
-      const users = await UserService.getUsers();
-      return res.status(200).json(users);
-    } catch (error) {
-      return res.status(500).json({ message: error });
+    public async getAllUsers(req: Request, res: Response) {
+        try {
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const users = await userService.getAllUsers(page, limit);
+            return res.status(200).json({
+                status: true,
+                message: "Users get successfully",
+                data: users,
+            });
+        } catch (error) {
+            return res.status(500).json({
+                status: false,
+                message: "Internal server error",
+                error: error.message,
+            });
+        }
     }
-  }
-  static async getUserById(req: Request, res: Response): Promise<any> {
-    try {
-      const { id } = req.params;
-      const user = await UserService.getUserById(parseInt(id));
-
-      if (!user) {
-        return res.status(404).json({ message: "User not found : " + id });
-      }
-      return res.status(200).json(user);
-    } catch (error) {
-      return res.status(500).json({ message: error });
+    public async getUserById(req: Request, res: Response) {
+        try {
+            const id = parseInt(req.params.id);
+            const user = await userService.getUserById(id);
+            if (!user) {
+                return res.status(404).json({
+                    status: false,
+                    message: "User not found",
+                    data: {},
+                });
+            }
+            return res.status(200).json({
+                status: true,
+                message: "User get successfully",
+                data: user,
+            });
+        } catch (error) {
+            return res.status(500).json({
+                status: false,
+                message: "Internal server error",
+                error: error.message,
+            });
+        }
     }
-  }
-  static async login(req: Request, res: Response): Promise<any> {
-    try {
-      const { email, password } = req.body;
-      const user = await UserService.login(email, password);
-      return res.status(200).json(user);
-    } catch (error) {
-      return res.status(500).json({ message: error });
+    @ValidatorDTO(UserDto)
+    public async updateUser(req: Request, res: Response) {
+        try {
+            const id = parseInt(req.params.id);
+            const userDto: UserDto = req.body;
+            const updatedUser = await userService.updateUser(id, userDto);
+            return res.status(200).json({
+                status: true,
+                message: "User updated successfully",
+                data: updatedUser,
+            });
+        } catch (error) {
+            return res.status(500).json({
+                status: false,
+                message: "Internal server error",
+                error: error.message,
+            });
+        }
     }
-  }
-  static async refreshToken(req: Request, res: Response): Promise<any> {
-    try {
-      const { refreshToken } = req.body;
-      const user = await UserService.refreshToken(refreshToken);
-      return res.status(200).json(user);
-    } catch (error) {
-      return res.status(500).json({ message: error });
-    }
-  }
-  static async logout(req: Request, res: Response): Promise<any> {
-    try {
-      const { refreshToken } = req.body;
-      const user = await UserService.logout(refreshToken);
-      return res.status(200).json(user);
-    } catch (error) {
-      return res.status(500).json({ message: error });
-    }
-  }
 }
-export default UserController;
+export const userController = new UserController();

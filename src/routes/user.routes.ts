@@ -1,13 +1,11 @@
 import express from "express";
-import UserController from "../controllers/user.controllers";
+import { userController } from "../controllers/user.controllers";
 
 const router = express.Router();
 
-router.post("/register", UserController.registerUser);
-router.get("/users", UserController.getUsers);
-router.get("/users/:id", UserController.getUserById);
-router.post("/login", UserController.login);
-router.post("/refresh-token", UserController.refreshToken);
-router.get("/logout", UserController.logout);
+router.post('/users', userController.createUser as any);
+router.get('/users', userController.getAllUsers as any);
+router.get('/users/:id', userController.getUserById as any);
+router.put('/users/:id', userController.updateUser as any);
 
-export default router;
+export { router as userRoutes };

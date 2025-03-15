@@ -2,6 +2,8 @@
   "dependencies": {
     "@types/express": "^5.0.0",
     "bcrypt": "^5.1.1",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
@@ -31,7 +33,7 @@
     "migration:run": "npm run typeorm migration:run",
     "migration:revert": "npm run typeorm migration:revert",
     "migration:show": "npm run typeorm migration:show",
-    "migration:drop": "npm run typeorm migration:drop"
+    "migration:drop": "npm run typeorm schema:drop"
   },
   "author": "",
   "license": "ISC"

@@ -1,75 +1,47 @@
-import { UserRepository } from "../repositories/user.repository";
+import { In } from "typeorm";
+import { UserDto } from "../dto/user.dto";
+import { roleRepository } from "../repositories/role.repository";
+import { userRepository } from "../repositories/user.repository";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-
-class UserService {
-    public static async createUser(
-        username: string,
-        email: string,
-        password: string,
-        role: string = "user"
-    ) {
-        const passwordHash = await bcrypt.hash(password, 10);
-        const user = UserRepository.create({
-        username,
-        email,
-        password: passwordHash,
-        role,
+class UserServices {
+    public async createUser(user: UserDto) {
+        const password = await bcrypt.hash(user.password, 10);
+        const role = user.rolesId ? await roleRepository.findOne({ where: { id: user.rolesId } }) : null;
+        const newUser = userRepository.create({ 
+            username: user.username, 
+            email: user.email, 
+            password,
+            roles: role
         });
-        return await UserRepository.save(user);
+        return await userRepository.save(newUser);
     }
-    public static async getUserByEmail(email: string) {
-        return await UserRepository.findOneBy({ email });
-    }
-    public static async getUserById(id: number) {
-        return await UserRepository.findOneBy({ id });
-    }
-    public static async getUsers() {
-        return await UserRepository.find();
-    }
-    
-    public static async login(email: string, password: string) {
-        const user = await UserRepository.findOneBy({ email });
-        if (!user) {
-        throw new Error("User not found");
-        }
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-        if (!isPasswordValid) {
-        throw new Error("Invalid password");
-        }
-        const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET as string, {
-        expiresIn: "1d",
+    public async getAllUsers(page: number, limit: number) {
+        const [users, total] = await userRepository.findAndCount({
+            skip: (page - 1) * limit,
+            take: limit,
         });
-    const refreshToken = jwt.sign({ id: user.id }, process.env.JWT_REFRESH_SECRET as string, {
-        expiresIn: "7d",
-    });
-        user.refreshToken = refreshToken;
-        await UserRepository.save(user);
-        return { token, refreshToken };
+        return {
+            data: users,
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+        };
     }
-  public static async refreshToken(refreshToken: string) {
-    const user = await UserRepository.findOneBy({ refreshToken: refreshToken });
-    if (!user) {
-      return { message: "User not found" };
+    public async getUserById(id: number) {
+        const user = await userRepository.findOne({ where: { id } });
+        return user;
     }
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET as string, {
-      expiresIn: "1d",
-    });
-    const refreshTokens = jwt.sign({ id: user.id }, process.env.JWT_REFRESH_SECRET as string, {
-      expiresIn: "7d",
-    });
-    user.refreshToken = refreshTokens;
-    await UserRepository.save(user);
-    return { token, refreshToken };
-  }
-  public static async logout(refreshToken: string) {
-    const user = await UserRepository.findOneBy({ refreshToken });
-    if (!user) {
-      return { message: "User not found" };
+    public async updateUser(id: number, user: UserDto) {
+        const userToUpdate = await userRepository.findOne({ where: { id } });
+        if (!userToUpdate) {
+            throw new Error("User not found");
+        }
+        userToUpdate.username = user.username;
+        userToUpdate.email = user.email;
+        userToUpdate.password = await bcrypt.hash(user.password, 10);
+        userToUpdate.roles = user.rolesId ? await roleRepository.findOne({ where: { id: user.rolesId } }) : null;
+        return await userRepository.save(userToUpdate);
     }
-    user.refreshToken = "";
-    await UserRepository.save(user);
-    return { message: "Logout successfully" };
-  }
 }
-export default UserService;
+export const userService = new UserServices();

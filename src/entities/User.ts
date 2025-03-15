@@ -1,18 +1,27 @@
 
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToMany, JoinTable, OneToOne, ManyToOne } from "typeorm";
+import { Role } from "./Role";
 
 @Entity('users')
 export class User {
     @PrimaryGeneratedColumn()
-    id!: number;
+    id: number;
+
     @Column({ unique: true })
-    username!: string;
+    username: string;
+
     @Column()
-    password!: string;
+    password: string;
+
     @Column({ unique: true })
-    email!: string;
+    email: string;
+
+    @ManyToOne(() => Role, (role) => role.users)
+    roles: Role;
+
     @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-    created_at!: Date;
+    created_at: Date;
+
     @UpdateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-    updated_at!: Date;
+    updated_at: Date;
 }
