@@ -20,6 +20,7 @@ export const authentification = async (req: Request, res: Response, next: NextFu
             },
             relations: ["roles"],
         });
+        console.log("user:", user);
         if (!user) {
             return res.status(400).json({ 
                 status: false,

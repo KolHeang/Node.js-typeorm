@@ -5,6 +5,7 @@ import express from "express";
 import { authentification } from "./middleware/auth.middleware";
 import { userRoutes } from "./routes/user.routes";
 import { authRoutes } from "./routes/auth.routes";
+import{ roleRoutes } from "./routes/role.routes";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -21,7 +22,7 @@ app.use("/api/auth", authRoutes);
 
 // Authentification middleware
 app.use(authentification);
-
+app.use("/api", roleRoutes);
 
 AppDataSource.initialize()
 .then(() => {
