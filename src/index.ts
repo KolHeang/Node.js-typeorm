@@ -2,26 +2,27 @@ import "reflect-metadata";
 import { Request,Response } from "express";
 import { AppDataSource } from "./config/database";
 import express from "express";
-import { authentification } from "./middleware/auth.middleware";
+import { authMiddleware } from "./middleware/auth.middleware";
 import { userRoutes } from "./routes/user.routes";
 import { authRoutes } from "./routes/auth.routes";
 import{ roleRoutes } from "./routes/role.routes";
+import { errorHandler } from "./middleware/errorHandler";
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
+app.use(errorHandler);
 app.get("/", (req: Request, res: Response) => {
-    res.send("Hello World!");
+    res.send("Hello, World!");
 });
 
 app.use("/api", userRoutes);
 app.use("/api/auth", authRoutes);
 
 // Authentification middleware
-app.use(authentification);
+app.use(authMiddleware);
 app.use("/api", roleRoutes);
 
 AppDataSource.initialize()

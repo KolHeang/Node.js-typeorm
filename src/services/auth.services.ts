@@ -3,22 +3,53 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { AuthDto } from "../dto/auth.dto";
 import dotenv from "dotenv";
+import { UserDto } from "../dto/user.dto";
+import { User } from "../entities/User";
+import speakeasy from "speakeasy";
+import qrcode from "qrcode";
+import { BadRequestException, NotFoundException, UnauthorizedException } from "../exceptions/exceptions";
 dotenv.config();
 
 class AuthService {
+    public async register(auth:UserDto) {
+        const user = await userRepository.findOne({ where: { email: auth.email } });
+        if (user) {
+            throw new BadRequestException("User already exists");
+        }
+
+        const hashedPassword = await bcrypt.hash(auth.password, 10);
+        const newUser = userRepository.create({
+            ...auth,
+            password: hashedPassword,
+        });
+        const resutl = await userRepository.save(newUser);
+        return resutl;
+    }
     public async login(auth: AuthDto) {
         const user = await userRepository.findOne({ where: { email: auth.email } });
         if (!user) {
-            throw new Error("User not found");
+            throw new NotFoundException("User not found");
         }
+        console.log('user', user);
         const isPasswordValid = await bcrypt.compare(auth.password, user.password);
-        console.log(isPasswordValid);
         if (!isPasswordValid) {
-            throw new Error("Invalid password or email");
+            throw new UnauthorizedException("Invalid password or email");
+        }
+
+        if (user.isTwoFactorEnabled) {
+            const tempToken = jwt.sign({ userId: user.id, requires2FA: true }, process.env.JWT_SECRET, { expiresIn: "10m" });
+            console.log('tempToken', tempToken);
+            return {
+                status: true,
+                tempToken,
+                message: "2FA required",
+                
+            };
         }
         
         const token = jwt.sign({ userId:user.id,username:user.username,email:user.email,roles:user.roles }, process.env.JWT_SECRET, { expiresIn: "1h" });
         const refreshToken = jwt.sign({ userId:user.id,username:user.username,email:user.email,roles:user.roles }, process.env.JWT_REFRESH_SECRET, { expiresIn: "7d" });
+        console.log('token', token, 'refreshToken', refreshToken);
         return {
             token,
             refreshToken,
@@ -28,7 +59,7 @@ class AuthService {
         const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET) as { userId: string };
         const user = await userRepository.findOne({ where: { id: Number(decoded.userId) } });
         if (!user) {
-            throw new Error("User not found");
+            throw new NotFoundException("User not found");
         }
         const tokens = jwt.sign({ userId: user.id, username: user.username, email: user.email, roles: user.roles }, process.env.JWT_SECRET, { expiresIn: "1h" });
         const refreshToken = jwt.sign({ userId: user.id, username: user.username, email: user.email, roles: user.roles }, process.env.JWT_REFRESH_SECRET, { expiresIn: "7d" });
@@ -44,6 +75,44 @@ class AuthService {
             status: true,
             message: "Logout successful",
         };
+    }
+
+    // Enable 2FA and generate QR code
+    public async enableTwoFactor(user: User) {
+        const users = await userRepository.findOne({ where: { id: user.id } });
+        if (!users) {
+            throw new NotFoundException("User not found");
+        }
+        const secret = speakeasy.generateSecret({
+            name: `MyApp:${user.email}`,
+        });
+
+        user.twoFactorSecret = secret.base32;
+        user.isTwoFactorEnabled = true;
+        await userRepository.save(user);
+        const qrCodeUrl = await qrcode.toDataURL(secret.otpauth_url);
+        return {
+            qrCodeUrl,
+            secret: secret.base32,
+        };
+    }
+
+    // Verify 2FA code
+    public async verifyTwoFactor(user: User, token: string) {
+        const users = await userRepository.findOne({ where: { id: user.id } });
+        if (!users) {
+            throw new NotFoundException("User not found");
+        }
+        const verified = speakeasy.totp.verify({
+            secret: users.twoFactorSecret,
+            encoding: "base32",
+            token: token,
+        });
+        if (!verified) {
+            throw new BadRequestException("Invalid 2FA token");
+        }
+
+        return verified;
     }
 }
 export const authService = new AuthService();
