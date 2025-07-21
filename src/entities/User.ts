@@ -1,5 +1,5 @@
 
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToMany, JoinTable, OneToOne, ManyToOne } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne } from "typeorm";
 import { Role } from "./Role";
 
 @Entity('users')
@@ -16,12 +16,18 @@ export class User {
     @Column({ unique: true })
     email: string;
 
+    @Column({ nullable: true })
+    twoFactorSecret: string;
+
+    @Column({ default: false })
+    isTwoFactorEnabled: boolean;
+
     @ManyToOne(() => Role, (role) => role.users)
     roles: Role;
 
     @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     created_at: Date;
 
-    @UpdateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    @UpdateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
     updated_at: Date;
 }
