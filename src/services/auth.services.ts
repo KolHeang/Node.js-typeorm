@@ -37,7 +37,7 @@ class AuthService {
         }
 
         if (user.isTwoFactorEnabled) {
-            const tempToken = jwt.sign({ userId: user.id, requires2FA: true }, process.env.JWT_SECRET, { expiresIn: "10m" });
+            const tempToken = jwt.sign({ userId: user.id, requires2FA: true }, process.env.JWT_SECRET, { expiresIn: "1h" });
             console.log('tempToken', tempToken);
             return {
                 status: true,
@@ -98,21 +98,33 @@ class AuthService {
     }
 
     // Verify 2FA code
-    public async verifyTwoFactor(user: User, token: string) {
-        const users = await userRepository.findOne({ where: { id: user.id } });
-        if (!users) {
+    public async verifyTwoFactor(tempToken: string, totp: string) {
+        const decoded = jwt.verify(tempToken, process.env.JWT_SECRET) as { userId: number, requires2FA: boolean };
+        console.log('decoded', decoded);
+        if (!decoded.requires2FA) {
+            throw new BadRequestException("2FA not enabled");
+        }
+        const user = await userRepository.findOne({ where: { id: decoded.userId } });
+        console.log('user', user);
+        if (!user) {
             throw new NotFoundException("User not found");
         }
+        console.log('user.twoFactorSecret', user.twoFactorSecret, 'token', totp);
         const verified = speakeasy.totp.verify({
-            secret: users.twoFactorSecret,
+            secret: user.twoFactorSecret,
             encoding: "base32",
-            token: token,
+            token: totp,
+            window: 1, // Allow a 1-minute window for clock skew
         });
+        console.log('verified', verified);
         if (!verified) {
             throw new BadRequestException("Invalid 2FA token");
         }
 
-        return verified;
+        const accessToken = jwt.sign({ userId: user.id, username: user.username, email: user.email }, process.env.JWT_SECRET, { expiresIn: "1h" });
+        const refreshToken = jwt.sign({ userId: user.id, username: user.username, email: user.email }, process.env.JWT_REFRESH_SECRET, { expiresIn: "7d" });
+
+        return { token: accessToken, refreshToken };
     }
 }
 export const authService = new AuthService();

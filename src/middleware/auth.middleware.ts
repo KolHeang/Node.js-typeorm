@@ -8,61 +8,56 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
         // Check for token in Authorization header
         const authHeader = req.headers.authorization;
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            res.status(401).json({
+            return res.status(401).json({
                 status: false,
-                message: 'Unauthorized',
+                message: 'Invalid token format',
             });
-            return;
         }
 
         const token = authHeader.split(' ')[1];
         if (!token) {
-            res.status(401).json({
+            return res.status(401).json({
                 status: false,
-                message: 'Invalid token format',
+                message: 'Token is required',
             });
-            return;
         }
 
         // Verify JWT
         if (!process.env.JWT_SECRET) {
             throw new Error('JWT_SECRET is not defined');
         }
-        const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload & { id: number; requires2FA?: boolean };
+        const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload & { userId: number; requires2FA?: boolean };
 
         // Find user with roles
         const user = await userRepository.findOne({
-            where: { id: decoded.id },
+            where: { id: decoded.userId },
             relations: ['roles'],
         });
 
         if (!user) {
-            res.status(401).json({
+            return res.status(401).json({
                 status: false,
                 message: 'User not found',
             });
-            return;
         }
 
         // Check if 2FA is required
-        if (user.isTwoFactorEnabled && decoded.requires2FA) {
-            res.status(403).json({
+        if (!user.isTwoFactorEnabled && !decoded.requires2FA) {
+            return res.status(403).json({
                 status: false,
-                message: '2FA verification required',
+                message: 'Two-factor authentication required',
             });
-            return;
         }
 
         // Attach user to request
         req.user = user;
         next();
     } catch (error) {
-        res.status(401).json({
+        console.error('Authentication error:', error);
+        return res.status(401).json({
             status: false,
-            message: 'Authentication failed',
-            error: error instanceof Error ? error.message : 'Unknown error',
+            message: error.message || 'Unauthorized',
         });
-        return;
     }
 };
 

@@ -72,7 +72,7 @@ class AuthController {
 
     public async enableTwoFactor(req: Request, res: Response) {
         try {
-            const user = req.user;
+            const user = (req as any).user; // Assuming user is set in middleware
             const result = await authService.enableTwoFactor(user);
             return res.status(200).json({
                 status: true,
@@ -80,6 +80,7 @@ class AuthController {
                 data: result,
             });
         } catch (error) {
+            console.error('Error enabling 2FA:', error);
             return res.status(error.status || 500).json({
                 status: false,
                 message: error.message || "Internal server error",
@@ -89,16 +90,30 @@ class AuthController {
 
     public async verifyTwoFactor(req: Request, res: Response) {
         try {
-            const user = req.user;
-            const token = req.body.token;
-            const result = await authService.verifyTwoFactor(user, token);
+            const tempToken = req.headers.authorization?.split(' ')[1];
+            console.log('tempToken', tempToken);
+            if (!tempToken) {
+                return res.status(400).json({
+                    status: false,
+                    message: "2FA token is required",
+                });
+            }
+            const { totp } = req.body;
+            if (!totp) {
+                return res.status(400).json({
+                    status: false,
+                    message: "TOTP code is required",
+                });
+            }
+            const result = await authService.verifyTwoFactor(tempToken, totp);
             return res.status(200).json({
                 status: true,
                 message: "2FA verified",
                 data: result,
             });
         } catch (error) {
-            return res.status(error.status || 500).json({
+            console.error('Error verifying 2FA:', error);
+            return res.status(error.code || 500).json({
                 status: false,
                 message: error.message || "Internal server error",
             });
