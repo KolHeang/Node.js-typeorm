@@ -12,11 +12,7 @@ dotenv.config();
 
 class AuthService {
     public async register(auth:UserDto) {
-        const user = await userRepository.findOne({ where: { email: auth.email } });
-        if (user) {
-            throw new BadRequestException("User already exists");
-        }
-
+        console.log('auth', auth);
         const hashedPassword = await bcrypt.hash(auth.password, 10);
         const newUser = userRepository.create({
             ...auth,
