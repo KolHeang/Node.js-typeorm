@@ -3,8 +3,9 @@ import { authService } from "../services/auth.services";
 import { AuthDto } from "../dto/auth.dto";
 import { ValidatorDTO } from "../decorators/ValidatorDTO";
 import { UserDto } from "../dto/user.dto";
+import { BaseController } from "./base.controllers";
 
-class AuthController {
+export class AuthController extends BaseController {
     @ValidatorDTO(UserDto)
     public async register(req: Request, res: Response) {
         try {
@@ -76,7 +77,7 @@ class AuthController {
             const result = await authService.enableTwoFactor(user);
             return res.status(200).json({
                 status: true,
-                message: "2FA enabled",
+                message: "2FA enabled successfully",
                 data: result,
             });
         } catch (error) {
@@ -87,10 +88,9 @@ class AuthController {
             });
         }
     }
-
     public async verifyTwoFactor(req: Request, res: Response) {
         try {
-            const tempToken = req.headers.authorization?.split(' ')[1];
+            const tempToken = req.body.tempToken;
             console.log('tempToken', tempToken);
             if (!tempToken) {
                 return res.status(400).json({

@@ -41,13 +41,13 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
             });
         }
 
-        // Check if 2FA is required
-        if (!user.isTwoFactorEnabled && !decoded.requires2FA) {
+        if (user.isTwoFactorEnabled && decoded.requires2FA) {
             return res.status(403).json({
                 status: false,
                 message: 'Two-factor authentication required',
             });
         }
+
 
         // Attach user to request
         req.user = user;
