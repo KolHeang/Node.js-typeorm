@@ -26,8 +26,8 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
         if (!process.env.JWT_SECRET) {
             throw new Error('JWT_SECRET is not defined');
         }
-        const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload & { userId: number; requires2FA?: boolean };
-
+        // const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload & { userId: number; requires2FA?: boolean };
+        const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload ;
         // Find user with roles
         const user = await userRepository.findOne({
             where: { id: decoded.userId },
@@ -41,12 +41,12 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
             });
         }
 
-        if (user.isTwoFactorEnabled && decoded.requires2FA) {
-            return res.status(403).json({
-                status: false,
-                message: 'Two-factor authentication required',
-            });
-        }
+        // if (user.isTwoFactorEnabled && decoded.requires2FA) {
+        //     return res.status(403).json({
+        //         status: false,
+        //         message: 'Two-factor authentication required',
+        //     });
+        // }
 
 
         // Attach user to request

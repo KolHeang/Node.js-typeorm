@@ -42,15 +42,15 @@ class AuthService {
             throw new BadRequestException('Invalid credentials');
         }
 
-        if (user.isTwoFactorEnabled) {
-            // Generate temporary token for 2FA verification
-            const tempToken = jwt.sign(
-                { userId: user.id, requires2FA: true },
-                process.env.JWT_SECRET!,
-                { expiresIn: '5m' }
-            );
-            return { tempToken, requires2FA: true };
-        }
+        // if (user.isTwoFactorEnabled) {
+        //     // Generate temporary token for 2FA verification
+        //     const tempToken = jwt.sign(
+        //         { userId: user.id, requires2FA: true },
+        //         process.env.JWT_SECRET!,
+        //         { expiresIn: '5m' }
+        //     );
+        //     return { tempToken, requires2FA: true };
+        // }
 
         // No 2FA, issue tokens directly
         const accessToken = jwt.sign(
