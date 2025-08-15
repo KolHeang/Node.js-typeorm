@@ -14,7 +14,7 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(errorHandler);
+
 app.get("/", (req: Request, res: Response) => {
     res.send("Hello, World!");
 });
@@ -27,6 +27,9 @@ app.use(authMiddleware);
 app.use("/api", roleRoutes);
 app.use("/api", permissionRoutes);
 
+
+// Error handler (always last)
+app.use(errorHandler);
 AppDataSource.initialize()
 .then(() => {
     console.log("Database connected successfully");
