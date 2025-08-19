@@ -6,13 +6,9 @@
         "emitDecoratorMetadata": true,
         "module": "commonjs",
         "moduleResolution": "node",
-        // "allowJs": true,
         "sourceMap": true,
         "outDir": "./dist",
         "esModuleInterop": true,
-        // "forceConsistentCasingInFileNames": true,
-        // "strict": true,
-        // "noImplicitAny": true,
         "skipLibCheck": true,
         "strictPropertyInitialization": false
     },
