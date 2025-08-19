@@ -1,4 +1,4 @@
-import { Request,Response } from "express";
+import e, { Request,Response } from "express";
 import { authService } from "../services/auth.services";
 import { AuthDto } from "../dto/auth.dto";
 import { ValidatorDTO } from "../decorators/ValidatorDTO";
@@ -10,6 +10,7 @@ export class AuthController extends BaseController {
     public async register(req: Request, res: Response) {
         try {
             const userDto: UserDto = req.body;
+            console.log('userDto', userDto);
             const user = await authService.register(userDto);
             return res.status(201).json({
                 status: true,
