@@ -21,13 +21,19 @@ export class Employee {
     employee_code: string; // used for attendance linking
 
     @Column({ type: "varchar" })
-    name: string;
+    full_name_en: string;
+
+    @Column({ type: "varchar" })
+    full_name_kh: string;
 
     @Column({ type: "varchar", nullable: true })
     email: string;
 
+    @Column({ type: "enum", enum: ["Male", "Female", "Other"] })
+    gender: string;
+
     @Column({ type: "varchar", nullable: true })
-    phone: string;
+    phone_number: string;
 
     @ManyToOne(() => Department, (department) => department.employees)
     @JoinColumn({ name: "department_id" })
@@ -40,12 +46,15 @@ export class Employee {
     @Column({ type: "boolean", default: true })
     is_active: boolean;
 
-    @CreateDateColumn()
+    @Column({ type: "timestamp", nullable: false })
+    start_work: Date;
+
+    @CreateDateColumn({ type: "timestamp" })
     created_at: Date;
 
-    @UpdateDateColumn()
+    @UpdateDateColumn({ type: "timestamp" })
     updated_at: Date;
-
+    
     @OneToMany(() => Attendance, (attendance) => attendance.employee)
     attendances: Attendance[];
 }
