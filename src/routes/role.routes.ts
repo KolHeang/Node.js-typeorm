@@ -3,10 +3,10 @@ import { roleController } from "../controllers/role.controllers";
 
 const route= express.Router();
 
-route.get("/roles", roleController.getAllRoles);
-route.get("/roles/:id", roleController.getRoleById as any);
-route.post("/roles", roleController.createRole);
-route.put("/roles/:id", roleController.updateRole as any);
-route.delete("/roles/:id", roleController.deleteRole as any);
+route.get("/roles", roleController.findAll);
+route.get("/roles/:id", roleController.findOne);
+route.post("/roles", roleController.create);
+route.put("/roles/:id", roleController.update);
+route.delete("/roles/:id", roleController.remove);
 
 export { route as roleRoutes };

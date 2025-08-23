@@ -13,8 +13,11 @@ export class Department {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ type: "varchar", unique: true })
-    name: string;
+    @Column({ type: "varchar", unique: true,name: "name_en" })
+    nameEn: string;
+
+    @Column({ type: "varchar", unique: true, name: "name_kh" })
+    nameKh: string;
 
     @CreateDateColumn()
     created_at: Date;

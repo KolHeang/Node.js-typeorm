@@ -8,6 +8,8 @@ import { authRoutes } from "./routes/auth.routes";
 import{ roleRoutes } from "./routes/role.routes";
 import { errorHandler } from "./middleware/errorHandler";
 import { permissionRoutes } from "./routes/permission.routes";
+import { departmentRouter} from "./routes/department.routes";
+import {positionRouter} from "./routes/position.routes";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -26,6 +28,8 @@ app.use("/api/auth", authRoutes);
 app.use(authMiddleware);
 app.use("/api", roleRoutes);
 app.use("/api", permissionRoutes);
+app.use("/api", departmentRouter);
+app.use("/api", positionRouter);
 
 
 // Error handler (always last)

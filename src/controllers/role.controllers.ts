@@ -3,107 +3,60 @@ import { RoleDto } from "../dto/role.dto";
 import { roleService } from "../services/role.services";
 import { Request, Response } from "express";
 import { RoleDtoUpdate } from "../dto/role.update.dto";
+import {responseController} from "../utils/response.util";
 
 class RoleController {
-    public async getAllRoles(req: Request, res: Response) {
+    public async findAll(req: Request, res: Response) {
         try{
-            const roles = await roleService.getAllRoles();
-            res.status(200).json({
-                status: true,
-                message: "Roles fetched successfully",
-                data: roles
-            });
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const roles = await roleService.findAll(page, limit);
+            return responseController(res, 200, true, "Successful", roles);
         } catch (error) {
-            res.status(500).json({
-                status: false,
-                message: error.message
-            });
+            return responseController(res, error.code||500, false, error.message || "Internal Server Error");
         }
-        
     }
-    public async getRoleById(req: Request, res: Response) {
+
+    public async findOne(req: Request, res: Response) {
         try{
             const id = parseInt(req.params.id);
-            const role = await roleService.getRoleById(id);
-            if (!role) {
-                return res.status(404).json({
-                    status: false,
-                    message: "Role not found"
-                });
-            }
-            res.status(200).json({
-                status: true,
-                message: "Role fetched successfully",
-                data: role
-            });
+            const role = await roleService.findOne(id);
+            return responseController(res, 200, true, "Successful", role);
         } catch (error) {
-            res.status(500).json({
-                status: false,
-                message: error.message
-            });
+            return responseController(res, error.code||500, false, error.message || "Internal Server Error");
         }
     }
+
     @ValidatorDTO(RoleDto)
-    public async createRole(req: Request, res: Response) {
+    public async create(req: Request, res: Response) {
         try{
             const role: RoleDto = req.body;
-            const newRole = await roleService.createRole(role);
-            res.status(201).json({
-                status: true,
-                message: "Role created successfully",
-                data: newRole
-            });
+            const newRole = await roleService.create(role);
+            return responseController(res, 200, true, "Successful", newRole);
         } catch (error) {
-            res.status(500).json({
-                status: false,
-                message: error.message
-            });
+            return responseController(res, error.code||500, false, error.message || "Internal Server Error");
         }
     }
+
     @ValidatorDTO(RoleDtoUpdate)
-    public async updateRole(req: Request, res: Response) {
+    public async update(req: Request, res: Response) {
         try{
             const id = parseInt(req.params.id);
             const role: RoleDto = req.body;
-            const updatedRole = await roleService.updateRole(id, role);
-            if (!updatedRole) {
-                return res.status(404).json({
-                    status: false,
-                    message: "Role not found"
-                });
-            }
-            res.status(200).json({
-                status: true,
-                message: "Role updated successfully",
-                data: updatedRole
-            });
+            const updatedRole = await roleService.update(id, role);
+           return responseController(res, 200, true, "Successful", updatedRole);
         } catch (error) {
-            res.status(500).json({
-                status: false,
-                message: error.message
-            });
+            return responseController(res, error.code||500, false, error.message || "Internal Server Error");
         }
     }
-    public async deleteRole(req: Request, res: Response) {
+
+    public async remove(req: Request, res: Response) {
         try{
             const id = parseInt(req.params.id);
-            const deletedRole = await roleService.deleteRole(id);
-            if (!deletedRole) {
-                return res.status(404).json({
-                    status: false,
-                    message: "Role not found"
-                });
-            }
-            res.status(200).json({
-                status: true,
-                message: "Role deleted successfully",
-                data: deletedRole
-            });
+            const deletedRole = await roleService.remove(id);
+            return responseController(res, 200, true, "Successful", deletedRole);
         } catch (error) {
-            res.status(500).json({
-                status: false,
-                message: error.message
-            });
+            return responseController(res, error.code||500, false, error.message || "Internal Server Error");
         }
     }
 }

@@ -13,13 +13,16 @@ export class Position {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ type: "varchar", unique: true })
-    name: string;
+    @Column({ type: "varchar", unique: true, name:"name_en" })
+    nameEn: string;
 
-    @CreateDateColumn()
+    @Column({ type: "varchar", unique: true, name:"name_kh" })
+    nameKh: string;
+
+    @CreateDateColumn({ type: "timestamp", default: Date.now })
     created_at: Date;
 
-    @UpdateDateColumn()
+    @UpdateDateColumn({ type: "timestamp", default: Date.now })
     updated_at: Date;
 
     @OneToMany(() => Employee, (employee) => employee.position)
