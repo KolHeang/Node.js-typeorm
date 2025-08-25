@@ -12,7 +12,7 @@ import { Attendance } from "./Attendance";
 import { Department } from "./Department";
 import { Position } from "./Position";
 
-@Entity("employee")
+@Entity("employees")
 export class Employee {
     @PrimaryGeneratedColumn()
     id: number;
@@ -26,27 +26,30 @@ export class Employee {
     @Column({ type: "varchar" })
     full_name_kh: string;
 
-    @Column({ type: "varchar", nullable: true })
+    @Column({ type: "varchar", nullable: true , unique: true })
     email: string;
 
-    @Column({ type: "enum", enum: ["Male", "Female", "Other"] })
+    @Column({ type: "enum", enum: ["M", "F"] })
     gender: string;
 
-    @Column({ type: "varchar", nullable: true })
+    @Column({ type: "date", nullable: true })
+    date_of_birth: Date;
+
+    @Column({ type: "varchar", nullable: true, unique: true })
     phone_number: string;
 
-    @ManyToOne(() => Department, (department) => department.employees)
+    @ManyToOne(() => Department, (department) => department.employees, { onDelete: "SET NULL" })
     @JoinColumn({ name: "department_id" })
     department: Department;
 
-    @ManyToOne(() => Position, (position) => position.employees)
+    @ManyToOne(() => Position, (position) => position.employees, { onDelete: "SET NULL" })
     @JoinColumn({ name: "position_id" })
     position: Position;
 
     @Column({ type: "boolean", default: true })
     is_active: boolean;
 
-    @Column({ type: "timestamp", nullable: false })
+    @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
     start_work: Date;
 
     @CreateDateColumn({ type: "timestamp" })
