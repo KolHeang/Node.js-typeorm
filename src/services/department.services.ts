@@ -1,18 +1,18 @@
 import {DepartmentDto} from "../dto/department.dto";
-import {departmentRespository} from "../repositories/department.repository";
+import {departmentRepository} from "../repositories/department.repository";
 import {NotFoundException} from "../exceptions/exceptions";
 
 export class DepartmentService {
     public async create(data: DepartmentDto) {
-        const department = departmentRespository.create({
+        const department = departmentRepository.create({
             nameEn: data.nameEn,
             nameKh: data.nameKh,
         });
-        return await departmentRespository.save(department);
+        return await departmentRepository.save(department);
     }
 
     public  async findAll(page: number, limit: number) {
-        const [departments, total] = await departmentRespository.findAndCount({
+        const [departments, total] = await departmentRepository.findAndCount({
             skip: (page - 1) * limit,
             take: limit,
             order: { id: "desc"}
@@ -27,7 +27,7 @@ export class DepartmentService {
     }
 
     public async findOne(departmentId: number) {
-        const department = await departmentRespository.findOne({
+        const department = await departmentRepository.findOne({
             where: { id: departmentId },
         });
         if (!department) {
@@ -38,7 +38,7 @@ export class DepartmentService {
     }
 
     public async update(departmentId: number,data: DepartmentDto) {
-        const department = await departmentRespository.findOne({
+        const department = await departmentRepository.findOne({
             where: { id: departmentId }
         });
         if (!department) {
@@ -47,16 +47,16 @@ export class DepartmentService {
 
         department.nameEn = data.nameEn ?? department.nameEn;
         department.nameKh = data.nameKh ?? department.nameEn;
-        return await departmentRespository.save(department);
+        return await departmentRepository.save(department);
     }
 
     public async delete(departmentId: number) {
-        const department = await departmentRespository.findOne({
+        const department = await departmentRepository.findOne({
             where: { id: departmentId },
         });
         if (!department) {
             throw new NotFoundException("Department not found");
         }
-        return await departmentRespository.delete(departmentId);
+        return await departmentRepository.delete(departmentId);
     }
 }

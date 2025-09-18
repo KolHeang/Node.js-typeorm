@@ -10,6 +10,8 @@ import { errorHandler } from "./middleware/errorHandler";
 import { permissionRoutes } from "./routes/permission.routes";
 import { departmentRouter} from "./routes/department.routes";
 import {positionRouter} from "./routes/position.routes";
+import {employeeRouter} from "./routes/employee.routes";
+import { auditMiddleware } from "./middleware/audit.middleware";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -24,12 +26,22 @@ app.get("/", (req: Request, res: Response) => {
 app.use("/api", userRoutes);
 app.use("/api/auth", authRoutes);
 
+// Attach fake user (replace with real JWT/session auth)
+app.use((req, res, next) => {
+    (req as any).user = { id: 1 };
+    next();
+});
+
+// Apply audit middleware globally
+app.use(auditMiddleware);
+
 // Authentification middleware
 app.use(authMiddleware);
 app.use("/api", roleRoutes);
 app.use("/api", permissionRoutes);
 app.use("/api", departmentRouter);
 app.use("/api", positionRouter);
+app.use("/api", employeeRouter);
 
 
 // Error handler (always last)
